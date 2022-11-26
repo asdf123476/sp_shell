@@ -37,23 +37,32 @@ void ctrl_ㅣ(int sig)
 
 int checkOpt(char *argv)
 {
-    //실행시의 인자값 확인
-    //  -1 = &
+     //실행시의 인자값 확인 
+    //  -1 = &, 1 = pipe, 2 = <, 3 = >
     int opt = 0;
     // 0=없음
-    if (argv == NULL)
-    {
+    if(argv == NULL){
         return opt;
     }
-    for (int i = 0; argv[i] != NULL; i++)
-    {
-        if (argv[i] == '&')
-        {
+    for(int i=0; argv[i] != NULL; i++){
+        if (argv[i] == '&'){
             opt = -1;
             return opt;
         }
+        if (argv[i] == '|'){
+            opt = 1;
+            return opt;
+        }
+        if (argv[i] == '<'){
+            opt = 2;
+            return opt;
+        }
+        if (argv[i] == '>'){
+            opt = 3;
+            return opt;
+        }
     }
-
+    
     return opt;
 }
 
@@ -90,34 +99,106 @@ void ls_temp()
 
 void run(int i, int t_opt, char **argv)
 {
-    pid_t pid;
+     pid_t pid;
     int fd; /* file descriptor */
     char *buf[1024];
     int flags = O_RDWR | O_CREAT;
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; /* == 0644 */
     memset(buf, 0, 1024);
     pid = fork();
-    if (pid == 0)
-    { // child
-        //-1 = &
-        if (t_opt == -1)
-        {
+    if (pid == 0){  //child
+        //-1 = &, 1 = pipe, 2 = <, 3 = >
+        if(t_opt == -1){
             printf("%s 명령이 백그라운드로 실행됩니다.\n", argv[i]);
             matchCMD(i, argv);
             exit(0);
         }
-    }
-    else if (pid > 0)
-    { // parent - 백그라운드 아닐 때만 기다림
-        if (t_opt >= 0)
-        { //백그라운드가 아닐 때
-            wait(pid);
+        else if(t_opt == 0){
+            matchCMD(i, argv);
+            exit(0);
+        }
+        else if(t_opt == 2){
+            if ((fd = open(argv[i + 2], flags, mode)) == -1) {
+                perror("open"); /* errno에 대응하는 메시지 출력됨*/
+                exit(1);
+            }
+            if (dup2(fd, STDIN_FILENO) == -1) {
+                exit(1);
+            }
+            if (close(fd) == -1) {
+                perror("close"); /* errno에 대응하는 메시지 출력됨*/
+                exit(1);
+            }
+            cat_temp(argv[i+2]);
+            matchCMD(i, argv);
+            exit(0);
+        }
+        else if(t_opt == 3){
+            if ((fd = open(argv[i+2], flags, mode)) == -1) {
+                perror("open"); /* errno에 대응하는 메시지 출력됨*/
+                exit(1);
+            }
+            if (dup2(fd, STDOUT_FILENO) == -1) {
+                exit(1);
+            }
+            if (close(fd) == -1) {
+                perror("close"); /* errno에 대응하는 메시지 출력됨*/
+                exit(1);
+            }
+            matchCMD(i, argv);
+            exit(0);
         }
     }
-    else
-    {
+    else if (pid > 0){  //parent - 백그라운드 아닐 때만 기다림
+        if(t_opt >= 0){ //백그라운드가 아닐 때
+            wait(pid);
+	    }
+        if(!strcmp(argv[i], "cd")){
+            if(argv[i+1] == NULL){
+                fprintf(stderr, "error\n");
+            }
+            else{
+                cd_temp(argv[i+1]);
+            }
+        }
+    }
+    else{
         perror("포크 실패");
     }
+}
+
+void run_pipe(int i, char **argv){
+    char buf[1024];
+    int p[2];
+    int pid;
+
+    /* open pipe */
+    if (pipe(p) == -1) {
+        perror ("파이프 호출 실패");
+        exit(1);
+    }
+
+    pid = fork();
+    if (pid == 0) { 
+        close(p[0]);
+        if (dup2(p[1], STDOUT_FILENO) == -1) {
+            exit(1);
+        }
+        close(p[1]);
+        matchCMD(i, argv);
+        exit(0);
+    }
+    else if (pid > 0) {
+        wait(pid);
+        char *arg[1024];
+        close(p[1]);
+        sprintf(buf, "%d", p[0]);
+        arg[0] = argv[i + 2];
+        arg[1] = buf;
+        matchCMD(0, arg);
+    }
+    else
+        perror ("포크 실패");
 }
 
 int main()
@@ -160,6 +241,7 @@ int main()
             int t_opt = checkOpt(argv[i + 1]); //-1 = &
             if (t_opt == 1)
             {
+                run_pipe(i, argv);
                 i += 2;
             }
             else
