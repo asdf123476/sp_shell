@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+
 int main()
 {
     char buf[256];
@@ -12,6 +14,14 @@ int main()
         printf("shell> ");
         gets(buf);
         narg = getargs(buf, argv);
+
+        if (strcmp(buf, "exit") == 0) // exit 구현
+        {
+            printf("shell을 종료합니다.\n");
+            exit(0);
+        }
+
+        ///
         pid = fork();
         if (pid == 0)
             execvp(argv[0], argv);
