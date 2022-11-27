@@ -154,7 +154,26 @@ void matching(int i, char **argv)
             rm_temp(argv[i+1]);
         }
     }
+     else if(!strcmp(argv[i], "mv"))
+     {
+        if(argv[i+1] == NULL || argv[i+2] == NULL)
+        {
+            fprintf(stderr, "이동파일의 이름과 경로를 확인해주세요.\n");
+        }
+        else
+        {
+            mv_temp(argv[i+1], argv[i+2]);
+        }
+    }
     
+}
+void mv_temp(char *file, char *path)   // file 이동할 파일명 , path 이동할 파일의 경로를 입력받는다.
+{
+    //경로로 복사후 원파일을 삭제한다.
+    cp_temp(file, path);
+    rm_temp(file);
+    printf("\n");printf("\n");
+    printf("파일의 이동이 완료되었습니다.\t%s에서 확인해주세요",path);
 }
 
 void rm_temp(char *target){  // 파일 삭제
@@ -220,7 +239,7 @@ void make_ls()
 }
 
 void ln_temp(char *src, char *target){
-    if (link(src, target) <0){
+    if (link(src, target) <0){  //-1 반환시
         printf("%s 의 링크 생성 실패.. 파일을 확인하세요",src);
     }
     else
@@ -247,13 +266,13 @@ void cp_temp(char *src, char *target){   // src = 복사할 파일 target = 붙�
         exit(1);
     }
 
-    while ( (rcnt = read(src_fd, buf, 10)) > 0){
-        write(dst_fd, buf, rcnt);  // 파일 붙여넣기
+    while ( (rcnt = read(src_fd, buf, 10)) > 0){  //원파일 내용 읽어오기
+        write(dst_fd, buf, rcnt);  // 목적파일에 버퍼 내용 쓰기
     }
     if (rcnt = 0) {
         exit(1);
     }
-    printf("파일 복사가 완료되었습니다.. \n 확인하려면 cat %s 를 입력하세요.. \n",target);
+    printf("파일 복사가 완료되었습니다.. \n확인하려면 cat %s 를 입력하세요..\n",target);
     close(src_fd);
     close(dst_fd);
 }
@@ -262,21 +281,23 @@ void cat_temp(char *target){
     char buffer[512];
     int filedes;
     //  명령 파일 확인
-    if ( (filedes = open (target, O_RDONLY) ) == -1)
+    if ( (filedes = open (target, O_RDONLY) ) == -1)  // 파일열기
     {
         printf("파일 열기에 문제가 있습니다.\n");
         exit (1);
     }
-    while (read (filedes, buffer, 512) > 0){
+    while (read (filedes, buffer, 512) > 0){ // 파일 끝까지 읽어오기
         printf("%s", buffer);
     }
+    printf("\n");
 }
 
 void cat_target_temp(int target){
-    char buffer[512];
+    char buffer[512]; //입력 내용 받을 버퍼
     while (read (target, buffer, 512) > 0){ //파일 끝까지 읽어오기
         printf("%s", buffer);
     }
+    printf("\n");
 }
 
 
