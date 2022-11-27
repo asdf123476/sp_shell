@@ -77,31 +77,35 @@ void matching(int i, char **argv)
 
     if (!strcmp(argv[i], "ls"))
     {
-        ls_temp();
+        make_ls();
     }
 }
 
-void ls_temp()
+void make_ls()
 {
-    DIR *pdir;
-    struct dirent *pde;
+    DIR *dirptr;            //현재 디렉토리를 저장해 줄 DIR 포인터 변수 선언
+    struct dirent *direntp; //파일의 정보를 저장해 줄 dirent 포인터 변수 선언
     int i = 0;
 
-    if ((pdir = opendir(".")) < 0)
+    dirptr = opendir("."); //성공하면 DIR을, 실패하면 NULL을 반환
+
+    if (dirptr == NULL)
     {
-        perror("디렉토리 열기");
-        exit(1);
+        fprintf(stderr, "Fail to open %s", "."); // open에 실패하면 에러를 출력
     }
-    while ((pde = readdir(pdir)) != NULL)
+    else
     {
-        if (strcmp(pde->d_name, ".") == 0 || strcmp(pde->d_name, "..") == 0 || strcmp(pde->d_name, ".vscode") == 0 || strcmp(pde->d_name, ".git") == 0)
-            continue;
-        printf("%10s ", pde->d_name);
-        if (++i % 3 == 0)
-            printf("\n");
+        //다음 dirent를 받아 옴
+        direntp = readdir(dirptr);
+        while (direntp != NULL)
+        {
+            printf("%10s", direntp->d_name); // dirent에서 이름 데려오기
+            if (++i % 3 == 0)
+                printf("\n");
+            direntp = readdir(dirptr);
+        }
+        closedir(dirptr); //완료 후 DIR을 close 해준다.
     }
-    printf("\n");
-    closedir(pdir);
 }
 
 void run(int i, int t_opt, char **argv)
