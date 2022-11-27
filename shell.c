@@ -83,6 +83,28 @@ void matching(int i, char **argv)
     {
         make_pwd();
     }
+    if (!strcmp(argv[i], "mkdir"))
+    {
+        if (argv[i + 1] == NULL)
+        {
+            fprintf(stderr, "폴더 이름도 적어주세요\n");
+        }
+        else
+        {
+            make_mkdir(argv[i + 1]);
+        }
+    }
+}
+void make_mkdir(char *path)
+{
+    if (mkdir(path, 0777) < 0)
+    {
+        perror("rmdir");
+    }
+    else
+    {
+        printf("%s 폴더가 생성되었습니다.\n", path);
+    }
 }
 void make_pwd()
 {
