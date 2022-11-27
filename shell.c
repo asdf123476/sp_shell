@@ -79,6 +79,16 @@ void matching(int i, char **argv)
     {
         make_ls();
     }
+    if (!strcmp(argv[i], "pwd"))
+    {
+        make_pwd();
+    }
+}
+void make_pwd()
+{
+    char path[1024];
+    getcwd(path, 1024); // 현재 작업 경로를 얻음
+    printf("%s\n", path);
 }
 
 void make_ls()
@@ -256,7 +266,7 @@ int main()
     {
         char path[1024];
         getcwd(path, 1024); // 현재 작업 경로를 얻음
-        printf("%s ", path);
+        printf("%s", path);
 
         printf("> ");
 
