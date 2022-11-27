@@ -143,8 +143,25 @@ void matching(int i, char **argv)
             cat_temp(argv[i+1]);
         }
     }
+     else if(!strcmp(argv[i], "rm"))
+     {
+        if(argv[i+1] == NULL)
+        {
+            fprintf(stderr, "삭제할 파일을 확인하세요.\n");
+        }
+        else
+        {
+            rm_temp(argv[i+1]);
+        }
+    }
     
 }
+
+void rm_temp(char *target){  // 파일 삭제
+    remove(target);
+    printf("%s 파일이 삭제되었습니다\n",target);
+}
+
 void make_rmdir(char *name)
 {
     if (rmdir(name) < 0)
