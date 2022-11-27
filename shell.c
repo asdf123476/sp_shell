@@ -34,37 +34,36 @@ void ctrl_ㅣ(int sig)
     printf("SIGQUIT 발생\n");
     exit(0);
 }
-
-int checkOpt(char *argv)
+//실행시의 인자값 확인
+int optionCheck(char *argv)
 {
-    //실행시의 인자값 확인
-    //  -1 = &, 1 = pipe, 2 = <, 3 = >
-    int opt = 0;
-    // 0=없음
+    int opt = 0; // 0 : 없음
+
     if (argv == NULL)
     {
         return opt;
     }
+
     for (int i = 0; argv[i] != NULL; i++)
     {
         if (argv[i] == '&')
         {
-            opt = -1;
+            opt = -1; // -1 : &
             return opt;
         }
         if (argv[i] == '|')
         {
-            opt = 1;
+            opt = 1; // 1 : pipe
             return opt;
         }
         if (argv[i] == '<')
         {
-            opt = 2;
+            opt = 2; // 2 : <
             return opt;
         }
         if (argv[i] == '>')
         {
-            opt = 3;
+            opt = 3; // 3 : >
             return opt;
         }
     }
@@ -72,7 +71,7 @@ int checkOpt(char *argv)
     return opt;
 }
 
-void matchCMD(int i, char **argv)
+void matching(int i, char **argv)
 {
     // argv 인자값 확인하고 맞는명령으로 매칭하고 실행되도록 한다.
 
@@ -95,7 +94,9 @@ void ls_temp()
     }
     while ((pde = readdir(pdir)) != NULL)
     {
-        printf("%20s ", pde->d_name);
+        if (strcmp(pde->d_name, ".") == 0 || strcmp(pde->d_name, "..") == 0 || strcmp(pde->d_name, ".vscode") == 0 || strcmp(pde->d_name, ".git") == 0)
+            continue;
+        printf("%10s ", pde->d_name);
         if (++i % 3 == 0)
             printf("\n");
     }
@@ -118,12 +119,12 @@ void run(int i, int t_opt, char **argv)
         if (t_opt == -1)
         {
             printf("%s 명령이 백그라운드로 실행됩니다.\n", argv[i]);
-            matchCMD(i, argv);
+            matching(i, argv);
             exit(0);
         }
         else if (t_opt == 0)
         {
-            matchCMD(i, argv);
+            matching(i, argv);
             exit(0);
         }
         else if (t_opt == 2)
@@ -143,7 +144,7 @@ void run(int i, int t_opt, char **argv)
                 exit(1);
             }
             //
-            matchCMD(i, argv);
+            matching(i, argv);
             exit(0);
         }
         else if (t_opt == 3)
@@ -162,7 +163,7 @@ void run(int i, int t_opt, char **argv)
                 perror("close"); /* errno에 대응하는 메시지 출력됨*/
                 exit(1);
             }
-            matchCMD(i, argv);
+            matching(i, argv);
             exit(0);
         }
     }
@@ -199,11 +200,12 @@ void run_pipe(int i, char **argv)
     /* open pipe */
     if (pipe(p) == -1)
     {
-        perror("파이프 호출 실패");
+        perror("pipe call failed");
         exit(1);
     }
 
     pid = fork();
+
     if (pid == 0)
     {
         close(p[0]);
@@ -212,7 +214,7 @@ void run_pipe(int i, char **argv)
             exit(1);
         }
         close(p[1]);
-        matchCMD(i, argv);
+        matching(i, argv);
         exit(0);
     }
     else if (pid > 0)
@@ -223,7 +225,7 @@ void run_pipe(int i, char **argv)
         sprintf(buf, "%d", p[0]);
         arg[0] = argv[i + 2];
         arg[1] = buf;
-        matchCMD(0, arg);
+        matching(0, arg);
     }
     else
         perror("포크 실패");
@@ -252,7 +254,7 @@ int main()
         getcwd(path, 1024); // 현재 작업 경로를 얻음
         printf("%s ", path);
 
-        printf("위치의 shell> ");
+        printf("> ");
 
         gets(buf);
         narg = getargs(buf, argv);
@@ -268,8 +270,8 @@ int main()
                 exit(0);
             }
             // 옵션값으로 명령분리
-            int t_opt = checkOpt(argv[i + 1]); //-1 = &, 1 = pipe, 2 = <, 3 = >
-            if (t_opt == 1)
+            int t_opt = optionCheck(argv[i + 1]); //-1 = &, 1 = pipe, 2 = <, 3 = >
+            if (t_opt == 1)                       // 1 : pipe
             {
                 run_pipe(i, argv);
                 i += 2;
