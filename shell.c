@@ -105,6 +105,17 @@ void matching(int i, char **argv)
             make_rmdir(argv[i + 1]);
         }
     }
+    else if(!strcmp(argv[i], "ln"))
+    {
+        if(argv[i+1] == NULL || argv[i+2] == NULL)
+        {
+            fprintf(stderr, "링크할 파일을 확인하세요\n");
+        }
+        else
+        {
+            ln_temp(argv[i+1], argv[i+2]);
+        }
+    }
 }
 void make_rmdir(char *name)
 {
@@ -161,6 +172,16 @@ void make_ls()
         closedir(dirptr); //완료 후 DIR을 close 해준다.
     }
     printf("\n");
+}
+
+void ln_temp(char *src, char *target){
+    if (link(src, target) <0){
+        printf("%s 의 링크 생성 실패.. 파일을 확인하세요",src);
+    }
+    else
+    {
+        printf("%s 의 링크 생성 성공\n",src);
+    }
 }
 
 void run(int i, int t_opt, char **argv)
