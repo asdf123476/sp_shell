@@ -127,6 +127,23 @@ void matching(int i, char **argv)
             cp_temp(argv[i+1], argv[i+2]);
         }
     }
+     if(!strcmp(argv[i], "cat"))
+     {
+        if(argv[i+1] == NULL)
+        {
+            fprintf(stderr, "열 파일을 확인하세요\n");
+        }
+        int arg = argv[i + 1][0] - 48;
+        if( arg == 3 ) 
+        {
+            cat_target_temp(arg);
+        }
+        else
+        {
+            cat_temp(argv[i+1]);
+        }
+    }
+    
 }
 void make_rmdir(char *name)
 {
@@ -224,6 +241,27 @@ void cp_temp(char *src, char *target){   // src = 복사할 파일 target = 붙�
     close(dst_fd);
 }
 
+void cat_temp(char *target){
+    char buffer[512];
+    int filedes;
+    //  명령 파일 확인
+    if ( (filedes = open (target, O_RDONLY) ) == -1)
+    {
+        printf("파일 열기에 문제가 있습니다.\n");
+        exit (1);
+    }
+    while (read (filedes, buffer, 512) > 0){
+        printf("%s", buffer);
+    }
+}
+
+void cat_target_temp(int target){
+    char buffer[512];
+    while (read (target, buffer, 512) > 0){ //파일 끝까지 읽어오기
+        printf("%s", buffer);
+    }
+}
+
 
 void run(int i, int t_opt, char **argv)
 {
@@ -264,7 +302,7 @@ void run(int i, int t_opt, char **argv)
                 perror("close"); /* errno에 대응하는 메시지 출력됨*/
                 exit(1);
             }
-            //
+            cat_temp(argv[i+2]);
             matching(i, argv);
             exit(0);
         }
