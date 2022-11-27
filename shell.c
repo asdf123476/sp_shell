@@ -116,6 +116,17 @@ void matching(int i, char **argv)
             ln_temp(argv[i+1], argv[i+2]);
         }
     }
+    else if(!strcmp(argv[i], "cp"))
+    {
+        if(argv[i+1] == NULL || argv[i+2] == NULL)
+        {
+            fprintf(stderr, "복사할 파일이나 붙여넣을 파일을 확인해주세요\n");
+        }
+        else
+        {
+            cp_temp(argv[i+1], argv[i+2]);
+        }
+    }
 }
 void make_rmdir(char *name)
 {
@@ -183,6 +194,36 @@ void ln_temp(char *src, char *target){
         printf("%s 의 링크 생성 성공\n",src);
     }
 }
+
+void cp_temp(char *src, char *target){   // src = 복사할 파일 target = 붙여넣을 파일
+    int src_fd; /* 소스파일 */
+    int dst_fd; /* 목적파일 */
+    char buf[10];
+
+    ssize_t rcnt;
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; /* == 0644 */
+
+
+    if ((src_fd = open(src, O_RDONLY)) == -1 ){
+        printf("소스파일 열기 실패\n");
+        exit(1);
+    }
+    if ( (dst_fd = creat(target, mode)) == -1 ){
+        printf("목적파일 생성 실패"); 
+        exit(1);
+    }
+
+    while ( (rcnt = read(src_fd, buf, 10)) > 0){
+        write(dst_fd, buf, rcnt);  // 파일 붙여넣기
+    }
+    if (rcnt = 0) {
+        exit(1);
+    }
+    printf("파일 복사가 완료되었습니다.. \n 확인하려면 cat %s 를 입력하세요.. \n",target);
+    close(src_fd);
+    close(dst_fd);
+}
+
 
 void run(int i, int t_opt, char **argv)
 {
