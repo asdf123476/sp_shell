@@ -187,21 +187,30 @@ void run(int i, int t_opt, char **argv)
         { //백그라운드가 아닐 때
             wait(pid);
         }
-        if (!strcmp(argv[i], "cd"))
+        if (strcmp(argv[i], "cd") == 0)
         {
             if (argv[i + 1] == NULL)
             {
-                fprintf(stderr, "error\n");
+                fprintf(stderr, "인자값 더적어주세요\n");
             }
             else
             {
-                //
+                make_cd(argv[i + 1]);
             }
         }
     }
     else
     {
         perror("포크 실패");
+    }
+}
+
+void make_cd(char *path)
+{
+    if (chdir(path) < 0)
+    {
+        perror("error");
+        exit(1);
     }
 }
 
