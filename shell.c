@@ -94,6 +94,28 @@ void matching(int i, char **argv)
             make_mkdir(argv[i + 1]);
         }
     }
+    if (!strcmp(argv[i], "rmdir"))
+    {
+        if (argv[i + 1] == NULL)
+        {
+            fprintf(stderr, "폴더 이름도 적어주세요\n");
+        }
+        else
+        {
+            make_rmdir(argv[i + 1]);
+        }
+    }
+}
+void make_rmdir(char *name)
+{
+    if (rmdir(name) < 0)
+    {
+        perror("rmdir");
+    }
+    else
+    {
+        printf("%s 폴더가 삭제되었습니다.\n", name);
+    }
 }
 void make_mkdir(char *path)
 {
@@ -138,6 +160,7 @@ void make_ls()
         }
         closedir(dirptr); //완료 후 DIR을 close 해준다.
     }
+    printf("\n");
 }
 
 void run(int i, int t_opt, char **argv)
